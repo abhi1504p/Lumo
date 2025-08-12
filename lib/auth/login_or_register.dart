@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lumo/auth/login_page/login_page_view.dart';
+import 'package:lumo/auth/register_page/register_page_view.dart';
 
-import '../pages/login_page.dart';
-import '../pages/register_page.dart';
 import 'login_or_register_controller.dart';
 
 class LoginOrRegister extends StatelessWidget {
@@ -14,12 +14,12 @@ class LoginOrRegister extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-   return Obx((){
-     if (loginOrRegisterController.showLoginPage.value) {
-       return LoginPage(ontap: loginOrRegisterController.togglePages);
-     } else {
-       return RegisterPage(ontap: loginOrRegisterController.togglePages);
-     }
-   });
+    return Obx(() {
+      if (loginOrRegisterController.showLoginPage.value) {
+        return LoginPageView( onTap:  loginOrRegisterController.togglePages,);
+      } else {
+        return RegisterPageView(onTap: loginOrRegisterController.togglePages);
+      }
+    });
   }
 }

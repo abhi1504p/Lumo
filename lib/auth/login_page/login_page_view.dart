@@ -1,33 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:lumo/core/widgets/app_button.dart';
 import 'package:lumo/core/widgets/app_input_field.dart';
 import 'package:lumo/core/widgets/app_text.dart';
+import 'login_page_logic.dart';
 
-class LoginPage extends StatelessWidget {
-  // Create a text controller and use it to retrieve the current value
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+class LoginPageView extends StatelessWidget {
+  final void Function()? onTap;
 
-  LoginPage({super.key, required this.ontap});
+  LoginPageView({super.key, required this.onTap});
 
-  final void Function(
-
-      )? ontap;
-
-  void tap(){
-    print("heleo");
-  }
+  // Inject the controller
+  final LoginPageLogic loginController = Get.put(LoginPageLogic());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-
             children: [
               Icon(
                 Icons.message,
@@ -36,29 +30,38 @@ class LoginPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               AppText.body("Sign in to continue chatting with people."),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
+
+              // Email input
               AppInputField(
-                controller: _emailController,
+                controller: loginController.emailController,
                 labeltext: "Email",
                 keyboardType: TextInputType.emailAddress,
                 obscureTexts: false,
               ),
-              SizedBox(height: 10),
-              AppInputField(
-                controller: _passwordController,
-                labeltext: "password",
+              const SizedBox(height: 10),
 
+              // Password input
+              AppInputField(
+                controller: loginController.passwordController,
+                labeltext: "Password",
                 keyboardType: TextInputType.text,
                 obscureTexts: true,
               ),
-              SizedBox(height: 30),
-              AppButton(
+              const SizedBox(height: 30),
+
+              // Login button with loading state
+              Obx(() => AppButton(
                 type: ButtonType.filled,
-                text: "Login",
+                text: loginController.isLoading.value ? "Logging in..." : "Login",
                 width: double.infinity,
-                onPressed: () {},
-              ),
-              SizedBox(height: 25),
+                onPressed: loginController.isLoading.value
+                    ? null
+                    : loginController.login,
+              )),
+              const SizedBox(height: 25),
+
+              // Register navigation
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -67,7 +70,7 @@ class LoginPage extends StatelessWidget {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   GestureDetector(
-                    onTap: ontap,
+                    onTap: onTap,
                     child: AppText.body(
                       "Register now",
                       color: Theme.of(context).colorScheme.inversePrimary,
