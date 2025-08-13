@@ -19,8 +19,8 @@ class LoginPageLogic extends GetxController {
         emailController.text.trim(),
         passwordController.text.trim(),
       );
-      // If login successful, you can navigate:
-      // Get.offAllNamed('/home');
+      // Navigate to home screen after successful login
+      Get.offAllNamed('/home');
     } catch (e) {
       Get.snackbar(
         "Login Failed",

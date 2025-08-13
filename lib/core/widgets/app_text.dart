@@ -5,29 +5,29 @@ import '../../theme/app_color.dart';
 
 /// Define app-wide text styles
 class AppTextStyle {
-  static const TextStyle heading = TextStyle(
+  static  TextStyle heading = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle body = TextStyle(
+  static  TextStyle body = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.normal,
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle caption = TextStyle(
+  static  TextStyle caption = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     color: AppColors.textColor,
   );
-  static const TextStyle title = TextStyle(
+  static  TextStyle title = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
   );
-  static const TextStyle highlight = TextStyle(
+  static  TextStyle highlight = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,
     color: AppColors.primaryColor,

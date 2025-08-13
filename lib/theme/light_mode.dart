@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
+import 'app_color.dart';
 
 ThemeData lightMode = ThemeData(
   colorScheme: ColorScheme.light(
-    surface: Colors.grey.shade300,
-    primary: Colors.grey.shade500,
+    primary: AppColors.primaryColor,
+    surface: Colors.grey.shade100,
+    onSurface: AppColors.textPrimary,
+    secondary: AppColors.textSecondary,
     tertiary: Colors.white,
-    secondary: Colors.grey.shade200,
-    inversePrimary: Colors.grey.shade900
+    inversePrimary: AppColors.textColor,
   ),
+  appBarTheme: AppBarTheme(
+    backgroundColor: AppColors.primaryColor,
+    foregroundColor: Colors.white,
+    elevation: 0,
+  ),
+
+
+
+
+
 );
