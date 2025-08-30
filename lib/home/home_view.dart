@@ -1,30 +1,44 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../Pages/chat_page/chat_page_view.dart';
 import '../Pages/my_drawer/my_drawer_view.dart';
+import '../Pages/my_settings/settings_view.dart';
 import '../Pages/user__tile/user__tile_view.dart';
 import '../service/auth_service.dart';
 import '../service/chat_services.dart';
+import '../core/widgets/responsive_layout.dart';
 import 'home_logic.dart';
 
 class HomeWidget extends StatelessWidget {
   HomeWidget({Key? key}) : super(key: key);
 
   final HomeLogic logic = Get.put(HomeLogic());
-  final _chatServies = ChatServices();
-  final _authServies = AuthService();
-
+  final _chatServices = ChatServices();
+  final _authServices = AuthService();
 
 
   @override
   Widget build(BuildContext context) {
+    final bool isSmallScreen = ResponsiveLayout.isMobile(context);
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.grey,
         title: const Text('Home'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.settings,
+              size: isSmallScreen ? 24 : 28,
+            ),
+            onPressed: () => Get.to(() => SettingsView()),
+            tooltip: 'Settings',
+          ),
+        ],
       ),
       drawer: My_drawerWidget(),
       body: _buildUserList(),
@@ -33,13 +47,17 @@ class HomeWidget extends StatelessWidget {
 
   Widget _buildUserList() {
     return StreamBuilder(
-      stream: _chatServies.getUserStream(),
+      stream: _chatServices.getUserStream(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Text("Error)");
+          return const Center(
+            child: Text("Error loading users"),
+          );
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Text("Loading..");
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         }
         return ListView(
           children: snapshot.data!
@@ -50,19 +68,21 @@ class HomeWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildUserListItem(
-    Map<String, dynamic> userData,
-    BuildContext context,
-  ) {
-    if(userData["email"]!= _authServies.getCurrentUser()?.email){
+  Widget _buildUserListItem(Map<String, dynamic> userData, BuildContext context) {
+    final currentUser = _authServices.getCurrentUser();
+    if (userData["email"] != currentUser?.email) {
       return User_TileWidget(
         text: userData["email"],
+        userId: userData["uid"],
         onTap: () {
-          Get.to(() => Chat_pageWidget(reciverEmail: userData["email"]));
+          Get.to(() => Chat_pageWidget(
+                reciverEmail: userData["email"],
+                reciverId: userData["uid"],
+              ));
         },
+        canDelete: currentUser?.email == "admin@admin.com", // Only admin can delete users
       );
-    }
-    else{
+    } else {
       return Container();
     }
   }

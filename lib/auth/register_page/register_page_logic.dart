@@ -27,7 +27,7 @@ class RegisterPageLogic extends GetxController {
         emailController.text.trim(),
         passwordController.text.trim(),
       );
-
+      Get.offAllNamed('/home');
       // Navigate to another page after successful registration
       // Get.offAllNamed('/home');
     } catch (e) {

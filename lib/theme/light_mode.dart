@@ -3,12 +3,12 @@ import 'app_color.dart';
 
 ThemeData lightMode = ThemeData(
   colorScheme: ColorScheme.light(
-    primary: AppColors.primaryColor,
+    primary: Colors.grey.shade500,
     surface: Colors.grey.shade100,
     onSurface: AppColors.textPrimary,
-    secondary: AppColors.textSecondary,
+    secondary: Colors.grey.shade200,
     tertiary: Colors.white,
-    inversePrimary: AppColors.textColor,
+    inversePrimary: Colors.grey.shade900,
   ),
   appBarTheme: AppBarTheme(
     backgroundColor: AppColors.primaryColor,

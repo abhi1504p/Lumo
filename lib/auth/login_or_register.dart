@@ -8,7 +8,7 @@ import 'login_or_register_controller.dart';
 class LoginOrRegister extends StatelessWidget {
   LoginOrRegister({super.key});
 
-  LoginOrRegisterController loginOrRegisterController = Get.put(
+  final LoginOrRegisterController loginOrRegisterController = Get.put(
     LoginOrRegisterController(),
   );
 

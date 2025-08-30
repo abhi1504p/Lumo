@@ -110,7 +110,7 @@ class AppButton extends StatelessWidget {
           child: ElevatedButton(
             onPressed: onPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: color ?? Theme.of(context).primaryColor,
+              backgroundColor: color ?? Theme.of(context).colorScheme.primary,
               foregroundColor: textColor ?? Colors.white,
               padding: buttonPadding,
               shape: RoundedRectangleBorder(

@@ -1,35 +1,41 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_navigation/src/root/get_material_app.dart';
-import 'package:get/get_navigation/src/routes/get_route.dart';
-import 'package:lumo/Pages/chat_page/chat_page_view.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:get/get.dart';
+import 'package:lumo/core/routes.dart';
 import 'package:lumo/auth/auth_gate.dart';
-import 'package:lumo/auth/login_or_register.dart';
-import 'package:lumo/home/home_view.dart';
-import 'package:lumo/theme/light_mode.dart';
-
+import 'package:lumo/theme/theme_mode.dart';
+import 'package:lumo/service/ai_settings_service.dart';
+import 'package:lumo/service/chat_services.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  await dotenv.load(fileName: "a.env");
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
+
+  final ThemeController themeController = Get.put(ThemeController());
+  final AISettingsService aiSettingsService = Get.put(AISettingsService());
+  final ChatServices chatServices = Get.put(ChatServices());
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: AuthGate(),
-      theme: lightMode,
-      getPages: [
-        GetPage(name: '/home', page: () => HomeWidget()),
-        GetPage(name: '/login', page: () => LoginOrRegister()),
-
-      ],
-    );
+    return Obx(() {
+      return GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: const AuthGate(),
+        theme: themeController.themeData,
+        initialRoute: '/',
+        getPages: AppRoutes.routes,
+      );
+    });
   }
 }

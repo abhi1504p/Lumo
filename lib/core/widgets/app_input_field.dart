@@ -13,6 +13,7 @@ class AppInputField extends StatelessWidget {
   final int? maxLength;
   final List<TextInputFormatter>? inputFormatters;
   final bool obscureTexts;
+  final InputBorder? border;
 
   const AppInputField({
     this.hint,
@@ -26,14 +27,16 @@ class AppInputField extends StatelessWidget {
     this.maxLength,
     this.inputFormatters,
 
-    Key? key, required this.obscureTexts,
+    Key? key,
+    required this.obscureTexts,
+    this.border,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-         color: Theme.of(context).colorScheme.primary,
+        color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
@@ -47,8 +50,8 @@ class AppInputField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hint,
           labelText: labeltext,
-          hintStyle:  TextStyle(
-             color: Theme.of(context).colorScheme.primary,
+          hintStyle: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
@@ -59,22 +62,31 @@ class AppInputField extends StatelessWidget {
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide:  BorderSide(color: Theme.of(context).colorScheme.primary, width: 1),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+              width: 1,
+            ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide:  BorderSide(color: Theme.of(context).colorScheme.tertiary, width: 1),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.tertiary,
+              width: 1,
+            ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide:  BorderSide(color: Theme.of(context).colorScheme.primary, width: 1),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+              width: 1,
+            ),
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 18,
             vertical: 18,
           ),
           filled: true,
-          fillColor:Theme.of(context).colorScheme.secondary,
+          fillColor: Theme.of(context).colorScheme.secondary,
           counterText: '',
         ),
       ),

@@ -38,6 +38,17 @@ app.*.symbols
 
 # Obfuscation related
 app.*.map.json
+.env
+a.env
+
+# Firebase configuration files (contain API keys)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+web/firebase-config.js
+
+# Firebase generated files
+lib/firebase_options.dart
+
 
 # Android Studio will place build artifacts here
 /android/app/debug
