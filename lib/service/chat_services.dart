@@ -56,8 +56,8 @@ class ChatServices {
     // 🔹 AI should NOT respond to your own messages
     // AI will respond to incoming messages via the message listener
 
-    // 🔹 Automatically delete old messages (optional, keep only latest 100)
-    await _autoDeleteOldMessages(chatId, limit: 100);
+    // 🔹 Automatically delete old messages (keep only latest 50 for performance)
+    await _autoDeleteOldMessages(chatId, limit: 50);
   }
 
   // ---------------- GET MESSAGES ----------------
@@ -93,10 +93,8 @@ class ChatServices {
 
   // ---------------- SETUP AI RESPONSE FOR SPECIFIC CHAT ----------------
   void setupAIResponseForChat(String chatId, String currentUserId, String otherUserId) {
-    // Only set up if AI mode is enabled and listener doesn't already exist
     if (!_aiSettings.isAIModeEnabled || _activeListeners.contains(chatId)) return;
 
-    print('🤖 Setting up AI listener for chat: $chatId');
     _activeListeners.add(chatId);
 
     _firestore
@@ -120,24 +118,16 @@ class ChatServices {
       // Check if we've already processed this message
       final lastProcessed = _lastProcessedMessage[chatId];
       if (lastProcessed != null && !messageTime.isAfter(lastProcessed)) {
-        return; // Already processed this message or an older one
+        return;
       }
 
-      // Only respond if:
-      // 1. AI mode is still enabled
-      // 2. Message is from the OTHER user (not current user, not AI)
-      // 3. Message is recent (within last 10 seconds)
+      // Only respond if message is from other user and recent
       final isFromOtherUser = senderId == otherUserId;
       final isNotFromAI = senderId != AIService.aiUserId;
       final isRecent = DateTime.now().difference(messageTime).inSeconds < 10;
 
       if (_aiSettings.isAIModeEnabled && isFromOtherUser && isNotFromAI && isRecent) {
-        print('🤖 Message from other user detected: $message');
-        print('🤖 Generating AI response...');
-
-        // Update last processed timestamp
         _lastProcessedMessage[chatId] = messageTime;
-
         await _handleAIResponse(chatId, message, currentUserId);
       }
     });
@@ -146,25 +136,16 @@ class ChatServices {
   // ---------------- HANDLE AI RESPONSE ----------------
   Future<void> _handleAIResponse(String chatId, String userMessage, String currentUserId) async {
     try {
-      print('🤖 Starting AI response generation...');
-      print('🤖 Chat ID: $chatId');
-      print('🤖 User message: $userMessage');
-      print('🤖 Current user ID: $currentUserId');
-
       // Get recent conversation history for context
-      final conversationHistory = await _getConversationHistory(chatId, limit: 10);
-      print('🤖 Conversation history loaded: ${conversationHistory.length} messages');
+      final conversationHistory = await _getConversationHistory(chatId, limit: 5);
 
       // Get AI response
-      print('🤖 Calling AI service...');
       final aiResponse = await _aiService.getAIResponse(
         userMessage,
         conversationHistory: conversationHistory
       );
-      print('🤖 AI response received: $aiResponse');
 
       // Create AI message
-      print('🤖 Creating AI message...');
       final aiMessage = Message(
         senderId: AIService.aiUserId,
         reciverId: currentUserId,
@@ -174,21 +155,16 @@ class ChatServices {
       );
 
       // Add small delay to make it feel more natural
-      print('🤖 Adding delay before sending...');
-      await Future.delayed(const Duration(milliseconds: 1500));
+      await Future.delayed(const Duration(milliseconds: 800));
 
       // Save AI response to Firestore
-      print('🤖 Saving AI message to Firestore...');
       await _firestore
           .collection("Chats_room")
           .doc(chatId)
           .collection("messages")
           .add(aiMessage.toMap());
 
-      print('✅ AI message saved successfully!');
-
     } catch (e) {
-      print('Error handling AI response: $e');
       // Send fallback message if AI fails
       final fallbackMessage = Message(
         senderId: AIService.aiUserId,
@@ -207,7 +183,7 @@ class ChatServices {
   }
 
   // ---------------- GET CONVERSATION HISTORY ----------------
-  Future<List<Map<String, String>>> _getConversationHistory(String chatId, {int limit = 10}) async {
+  Future<List<Map<String, String>>> _getConversationHistory(String chatId, {int limit = 5}) async {
     try {
       final snapshot = await _firestore
           .collection("Chats_room")
@@ -223,36 +199,36 @@ class ChatServices {
           'senderId': data['senderId'] as String,
           'message': data['message'] as String,
         };
-      }).toList();
+      }).toList().reversed.toList();
 
-      // Reverse to get chronological order
-      messages.reversed.toList();
-
-      return _aiService.formatConversationHistory(
-        messages.map((msg) => {
-          'senderId': msg['senderId']!,
-          'message': msg['message']!,
-        }).toList()
-      );
+      return _aiService.formatConversationHistory(messages);
     } catch (e) {
-      print('Error getting conversation history: $e');
       return [];
     }
   }
 
   // ---------------- AUTO DELETE OLD MESSAGES ----------------
-  Future<void> _autoDeleteOldMessages(String chatId, {int limit = 100}) async {
-    QuerySnapshot snapshot = await _firestore
-        .collection("Chats_room")
-        .doc(chatId)
-        .collection("messages")
-        .orderBy("timestamp", descending: true)
-        .get();
+  Future<void> _autoDeleteOldMessages(String chatId, {int limit = 50}) async {
+    try {
+      final snapshot = await _firestore
+          .collection("Chats_room")
+          .doc(chatId)
+          .collection("messages")
+          .orderBy("timestamp", descending: true)
+          .get();
 
-    if (snapshot.docs.length > limit) {
-      for (var doc in snapshot.docs.skip(limit)) {
-        await doc.reference.delete();
+      if (snapshot.docs.length > limit) {
+        final batch = _firestore.batch();
+        final docsToDelete = snapshot.docs.skip(limit);
+
+        for (var doc in docsToDelete) {
+          batch.delete(doc.reference);
+        }
+
+        await batch.commit();
       }
+    } catch (e) {
+      // Silently handle errors to avoid disrupting chat flow
     }
   }
 

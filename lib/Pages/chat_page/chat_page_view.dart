@@ -158,18 +158,17 @@ class Chat_pageWidget extends StatelessWidget {
         if (snapshot.hasError)
           return const Center(child: Text("Error loading messages"));
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: Text("Loading..."));
+          return const Center(child: CircularProgressIndicator());
         }
 
         chatController.messages = snapshot.data;
-        final messages = snapshot.data!.docs
-            .map((doc) => _buildMessageItem(doc, context))
-            .toList();
+        final docs = snapshot.data!.docs;
 
-        return ListView(
+        return ListView.builder(
           reverse: true,
           padding: EdgeInsets.all(ResponsiveLayout.isMobile(context) ? 8 : 16),
-          children: messages,
+          itemCount: docs.length,
+          itemBuilder: (context, index) => _buildMessageItem(docs[index], context),
         );
       },
     );
@@ -186,9 +185,7 @@ class Chat_pageWidget extends StatelessWidget {
     return Obx(() => Container(
           margin: EdgeInsets.symmetric(
               vertical: isMobile ? 4 : 6, horizontal: isMobile ? 4 : 8),
-          alignment: isCurrentUser
-              ? Alignment.centerRight
-              : (isAIMessage ? Alignment.centerLeft : Alignment.centerLeft),
+          alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
           child: GestureDetector(
             onLongPress: () => deleteLogic.toggleSelection(doc.id),
             onTap: deleteLogic.isSelectionMode.value
@@ -217,18 +214,15 @@ class Chat_pageWidget extends StatelessWidget {
     } else if (isCurrentUser) {
       messageColor = Colors.green;
     } else if (isAIMessage) {
-      messageColor = Colors.purple[600]!; // Special color for AI messages
+      messageColor = Colors.purple[600]!;
     } else {
       messageColor = Colors.grey[600]!;
     }
 
     return BoxDecoration(
       color: messageColor,
-      borderRadius: BorderRadius.circular(
-          ResponsiveLayout.isMobile(Get.context!) ? 12 : 16),
-      border: isSelected
-          ? Border.all(color: Colors.blue, width: 2)
-          : (isAIMessage ? Border.all(color: Colors.purple[300]!, width: 1) : null),
+      borderRadius: BorderRadius.circular(12),
+      border: isSelected ? Border.all(color: Colors.blue, width: 2) : null,
     );
   }
 
@@ -243,23 +237,19 @@ class Chat_pageWidget extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.smart_toy,
-                size: 16,
-                color: Colors.white.withOpacity(0.8),
-              ),
+              Icon(Icons.smart_toy, size: 14, color: Colors.white70),
               const SizedBox(width: 4),
               Text(
-                'AI Assistant',
+                'AI',
                 style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 11,
+                  color: Colors.white70,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
         ],
         Text(
           data["message"],

@@ -14,91 +14,70 @@ class AIService {
       final apiKey = Env.llamaApiKey;
       final apiUrl = Env.llamaApiUrl;
 
-      print('🌐 Running on web: $kIsWeb');
-
       if (apiKey.isEmpty) {
         throw Exception('LLaMA API key not configured');
       }
-      
+
       // Prepare conversation context
       List<Map<String, String>> messages = [];
-      
+
       // Add system prompt to set AI personality
       messages.add({
         'role': 'system',
-        'content': 'You are a casual, friendly person chatting naturally. Respond like a real human friend would - be conversational, use natural language, and keep it brief (1-2 sentences max). Avoid being overly helpful or formal. Just chat normally like you would with a friend. Don\'t repeat the same phrases or be robotic.'
+        'content': 'You are a casual, friendly person chatting naturally. Respond like a real human friend would - be conversational, use natural language, and keep it brief. Avoid being overly helpful or formal. Just chat normally like you would with a friend.'
       });
-      
-      // Add conversation history if provided (last 10 messages for context)
+
+      // Add conversation history if provided (last 5 messages for context)
       if (conversationHistory != null && conversationHistory.isNotEmpty) {
-        final recentHistory = conversationHistory.length > 10 
-            ? conversationHistory.sublist(conversationHistory.length - 10)
+        final recentHistory = conversationHistory.length > 5
+            ? conversationHistory.sublist(conversationHistory.length - 5)
             : conversationHistory;
         messages.addAll(recentHistory);
       }
-      
+
       // Add current user message
       messages.add({
         'role': 'user',
         'content': userMessage,
       });
-      
-      print('🤖 Sending request to: $apiUrl');
-      print('🔑 Using API key: ${apiKey.substring(0, 10)}...');
-      print('🔗 API Key length: ${apiKey.length}');
-      print('🌐 Headers: HTTP-Referer: https://lumo-chat.app, X-Title: Lumo Chat App');
 
       final requestBody = {
-        'model': 'meta-llama/llama-3.3-70b-instruct:free', // Updated to 3.3 model
+        'model': 'meta-llama/llama-3.3-70b-instruct:free',
         'messages': messages,
-        'max_tokens': 100, // Reduced for shorter, more natural responses
-        'temperature': 0.8, // Slightly higher for more natural variation
+        'temperature': 0.8,
         'stream': false,
       };
-
-      print('📝 Request body: ${jsonEncode(requestBody)}');
 
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $apiKey',
-          'HTTP-Referer': 'https://lumo-chat.app', // Optional. Site URL for rankings on openrouter.ai
-          'X-Title': 'Lumo Chat App', // Optional. Site title for rankings on openrouter.ai
+          'HTTP-Referer': 'https://lumo-chat.app',
+          'X-Title': 'Lumo Chat App',
         },
         body: jsonEncode(requestBody),
-      ).timeout(const Duration(seconds: 30));
-      
-      print('📡 Response status: ${response.statusCode}');
-      print('📄 Response body: ${response.body}');
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['choices'] != null && data['choices'].isNotEmpty) {
           final aiResponse = data['choices'][0]['message']['content'] as String;
-          print('✅ AI Response: $aiResponse');
           return aiResponse.trim();
         } else {
-          print('❌ No choices in response');
           return "I received an empty response. Please try again.";
         }
       } else {
-        print('❌ AI API Error: ${response.statusCode} - ${response.body}');
         return _getErrorResponse(response.statusCode);
       }
     } on TimeoutException catch (e) {
-      print('⏰ AI Service Timeout: $e');
       return "I'm taking too long to respond. Please try again.";
     } on http.ClientException catch (e) {
-      print('🌐 HTTP Client Error: $e');
       if (kIsWeb) {
-        return "CORS or network issue detected. This might be a browser security restriction.";
+        return "Network issue detected. Please check your connection.";
       }
       return "Network connection error. Please check your internet connection.";
-    } catch (e, stackTrace) {
-      print('💥 AI Service Error: $e');
-      print('🔍 Error type: ${e.runtimeType}');
-      print('📍 Stack trace: $stackTrace');
+    } catch (e) {
       return _getFallbackResponse();
     }
   }
@@ -107,26 +86,26 @@ class AIService {
   String _getErrorResponse(int statusCode) {
     switch (statusCode) {
       case 401:
-        return "Sorry, there's an authentication issue with the AI service. Please check the API configuration.";
+        return "Authentication issue. Please check API configuration.";
       case 429:
-        return "I'm getting too many requests right now. Please try again in a moment.";
+        return "Too many requests. Please try again in a moment.";
       case 500:
-        return "The AI service is temporarily unavailable. Please try again later.";
+        return "Service temporarily unavailable. Please try again later.";
       default:
-        return "I'm having trouble connecting right now. Please try again.";
+        return "Connection issue. Please try again.";
     }
   }
-  
+
   /// Returns a fallback response when AI service fails
   String _getFallbackResponse() {
-    final fallbackResponses = [
-      "I'm having some technical difficulties right now. How can I help you?",
-      "Sorry, I'm experiencing some connection issues. What would you like to talk about?",
-      "I'm here to chat! Though I'm having some technical hiccups at the moment.",
-      "Let me know what's on your mind! I might be a bit slow to respond due to technical issues.",
+    final responses = [
+      "Sorry, I'm having technical difficulties.",
+      "Please try again in a moment.",
+      "Something went wrong. Please try again.",
+      "I'm having trouble right now.",
     ];
-    
-    return fallbackResponses[DateTime.now().millisecond % fallbackResponses.length];
+
+    return responses[DateTime.now().millisecond % responses.length];
   }
   
   /// Converts chat history to the format expected by the AI API
